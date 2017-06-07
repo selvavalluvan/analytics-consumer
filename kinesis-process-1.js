@@ -41,13 +41,13 @@ function recordProcessor(emitter) {
         var sequenceNumber = commitInfo.sequenceNumber;
         var data = commitInfo.data;
         var checkpointer = commitInfo.checkpointer;
-        emitter.emit(key, data, function(error) {
+        emitter.emit(key, data, function (error) {
             if (error) {
                 callback(error);
                 return;
             }
             log.info(util.format('Successfully uploaded data to s3 file: %s', key));
-            checkpointer.checkpoint(sequenceNumber, function(e, seq) {
+            checkpointer.checkpoint(sequenceNumber, function (e, seq) {
                 if (!e) {
                     log.info('Successful checkpoint at sequence number: %s', sequenceNumber);
                 }
@@ -79,7 +79,7 @@ function recordProcessor(emitter) {
 
     return {
 
-        initialize: function(initializeInput, completeCallback) {
+        initialize: function (initializeInput, completeCallback) {
             shardId = initializeInput.shardId;
 
             commitQueue = async.queue(_commit, 1);
@@ -96,7 +96,7 @@ function recordProcessor(emitter) {
             });
         },
 
-        processRecords: function(processRecordsInput, completeCallback) {
+        processRecords: function (processRecordsInput, completeCallback) {
             if (!processRecordsInput || !processRecordsInput.records) {
                 completeCallback();
                 return;
@@ -104,37 +104,37 @@ function recordProcessor(emitter) {
             var records = processRecordsInput.records;
 
             async.series([
-                function(done) {
-                    var record;
-                    var processedCount = 0;
-                    var errorCount = 0;
-                    var errors;
+                    function (done) {
+                        var record;
+                        var processedCount = 0;
+                        var errorCount = 0;
+                        var errors;
 
-                    var callback = function (err) {
-                        if (err) {
-                            log.error(util.format('Received error while processing record: %s', err));
-                            errorCount++;
-                            errors = errors + '\n' + err;
+                        var callback = function (err) {
+                            if (err) {
+                                log.error(util.format('Received error while processing record: %s', err));
+                                errorCount++;
+                                errors = errors + '\n' + err;
+                            }
+
+                            processedCount++;
+                            if (processedCount === records.length) {
+                                done(errors, errorCount);
+                            }
+                        };
+
+                        for (var i = 0; i < records.length; ++i) {
+                            record = records[i];
+                            _processRecord(record, processRecordsInput.checkpointer, callback);
                         }
-
-                        processedCount++;
-                        if (processedCount === records.length) {
-                            done(errors, errorCount);
-                        }
-                    };
-
-                    for (var i = 0 ; i < records.length ; ++i) {
-                        record  = records[i];
-                        _processRecord(record, processRecordsInput.checkpointer, callback);
                     }
-                }
-            ],
-            function(err, errCount) {
-                if (err) {
-                    log.info(util.format('%d records processed with %d errors.', records.length, errCount));
-                }
-                completeCallback();
-            });
+                ],
+                function (err, errCount) {
+                    if (err) {
+                        log.info(util.format('%d records processed with %d errors.', records.length, errCount));
+                    }
+                    completeCallback();
+                });
 
 
             // var record, data, sequenceNumber, partitionKey;
@@ -169,7 +169,7 @@ function recordProcessor(emitter) {
             // }
         },
 
-        shutdown: function(shutdownInput, completeCallback) {
+        shutdown: function (shutdownInput, completeCallback) {
             if (shutdownInput.reason !== 'TERMINATE') {
                 completeCallback();
                 return;
@@ -180,7 +180,7 @@ function recordProcessor(emitter) {
                 sequenceNumber: buffer.getLastSequenceNumber(),
                 data: buffer.readAndClearRecords(),
                 checkpointer: shutdownInput.checkpointer
-            }, function(error) {
+            }, function (error) {
                 if (error) {
                     log.error(util.format('Received error while shutting down: %s', error));
                 }

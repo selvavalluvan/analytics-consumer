@@ -16,13 +16,13 @@ function _commit(commitInfo, callback) {
     var sequenceNumber = commitInfo.sequenceNumber;
     var data = commitInfo.data;
     var checkpointer = commitInfo.checkpointer;
-    emitter.emit(key, data, function(error) {
+    emitter.emit(key, data, function (error) {
         if (error) {
             callback(error);
             return;
         }
         log.info(util.format('Successfully uploaded data to s3 file: %s', key));
-        checkpointer.checkpoint(sequenceNumber, function(e, seq) {
+        checkpointer.checkpoint(sequenceNumber, function (e, seq) {
             if (!e) {
                 log.info('Successful checkpoint at sequence number: %s', sequenceNumber);
             }
@@ -101,7 +101,7 @@ function recordProcessor() {
                             }
 
                             processedCount++;
-                            log.info("Processed ", processedCount);
+                            log.info('Processed ', processedCount);
                             if (processedCount === records.length) {
                                 done(errors, errorCount);
                             }
@@ -157,7 +157,7 @@ function recordProcessor() {
                 completeCallback();
             });
         }
-    }
+    };
 }
 
 var kcl = require('./');
